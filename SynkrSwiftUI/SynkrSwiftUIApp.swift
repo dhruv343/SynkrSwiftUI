@@ -11,7 +11,10 @@ import SwiftUI
 struct SynkrSwiftUIApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationStack{
+                SignupView()
+            }
+            
         }
     }
 }
