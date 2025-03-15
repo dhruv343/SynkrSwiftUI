@@ -12,7 +12,7 @@ struct SynkrSwiftUIApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack{
-                SignupView()
+                AuthenticationView()
             }
             
         }
