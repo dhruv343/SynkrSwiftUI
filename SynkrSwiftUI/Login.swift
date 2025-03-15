@@ -1,23 +1,36 @@
 import SwiftUI
 
+struct AuthenticationView: View {
+    @State private var showLogin = true
+    
+    var body: some View {
+        if showLogin {
+            LoginView(toggleView: { showLogin = false })
+        } else {
+            SignupView(toggleView: { showLogin = true })
+        }
+    }
+}
+
 struct LoginView: View {
+    var toggleView: () -> Void
     
     @State private var email = ""
     @State private var password = ""
     
     var body: some View {
-        VStack(spacing: 15) { // Reduced spacing for better alignment
+        VStack(spacing: 15) {
             // App Logo
-            Image("Logo") // Replace with your asset name
+            Image("Logo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 250, height: 250) // Increased size to match SignupView
+                .frame(width: 250, height: 250)
             
             // Short text under the logo
             Text("Log in to your account")
                 .font(.headline)
                 .foregroundColor(.gray)
-                .padding(.top, -10) // Align better under logo
+                .padding(.top, -10)
 
             // Email Field
             TextField("Email", text: $email)
@@ -34,6 +47,8 @@ struct LoginView: View {
             // Login Button
             Button(action: {
                 print("Login Button Tapped")
+                print(email)
+                print(password)
             }) {
                 Text("Log In")
                     .frame(maxWidth: .infinity)
@@ -52,7 +67,7 @@ struct LoginView: View {
                 print("Continue with Google")
             }) {
                 HStack {
-                    Image(systemName: "globe") // Replace with Google logo asset if available
+                    Image(systemName: "globe")
                         .foregroundColor(.red)
                     Text("Continue with Google")
                 }
@@ -69,11 +84,11 @@ struct LoginView: View {
             // Signup Link
             HStack {
                 Text("Don't have an account?")
-                NavigationLink(destination: SignupView()) {
-                    Text("Sign up")
-                        .foregroundColor(.blue)
-                        .fontWeight(.bold)
+                Button("Sign up") {
+                    toggleView()
                 }
+                .foregroundColor(.blue)
+                .fontWeight(.bold)
             }
             .padding(.bottom, 20)
         }
@@ -83,7 +98,5 @@ struct LoginView: View {
 
 // Preview
 #Preview {
-    NavigationView {
-        LoginView()
-    }
+    AuthenticationView()
 }
