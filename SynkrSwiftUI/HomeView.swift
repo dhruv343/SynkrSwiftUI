@@ -1,17 +1,20 @@
 import SwiftUI
+import Foundation
 
 struct HomeView: View {
     @State private var selectedDate = Date()
     @State var loggedUser: User?
     // Sample tasks (replace with actual data source)
-    let tasks: [UserTask] = [
-        UserTask(taskName: "Go Gym and do some exercises", description: "Workout session", startTime: "5:00PM", endTime: "6:30AM", date: Date(), priority: .high, alert: .oneHour, category: .sports, isCompleted: true),
+    let taskModel = TaskDataModel.shared
+    
+    @State var tasks: [UserTask] = [
+        UserTask(taskName: "Go Gym and do some exercises", description: "Workout session", startTime: "5:00PM", endTime: "6:30AM", date: Date(), priority: .high, alert: .oneHour, category: .sports, isCompleted: false),
         UserTask(taskName: "I want to study OOPs in C++", description: "Study Session", startTime: "6:00PM", endTime: "7:30PM", date: Date(), priority: .medium, alert: .oneHour, category: .study),
-        UserTask(taskName: "Attend a meeting", description: "Work discussion", startTime: "10:00AM", endTime: "11:30AM", date: Date(), priority: .high, alert: .oneHour, category: .work)
+        UserTask(taskName: "Attend a meeting", description: "Work discussion", startTime: "10:00AM", endTime: "11:30AM", date: getMarch17Date(), priority: .high, alert: .oneHour, category: .work)
     ]
     
     var body: some View {
-        VStack {
+        ScrollView {
             // Header Section
             headerView
             
@@ -24,6 +27,10 @@ struct HomeView: View {
             Spacer()
         }
         .padding()
+        .onAppear {
+            guard let x = loggedUser else { return }
+            tasks = taskModel.getAllTasks(for: x.userId)
+        }
     }
     
     // MARK: - Header View
@@ -37,12 +44,20 @@ struct HomeView: View {
                     Text(selectedDate.fullFormattedString())
                 }
                 Spacer()
-                CircularProgressView(percentage: 80)
+                CircularProgressView(percentage: progressPercentage)
                     .frame(width: 70, height: 70)
             }
             .padding(5)
         }
         .padding(.horizontal)
+    }
+    
+    private var progressPercentage: Int {
+        let todayTasks = tasks.filter { $0.date.isSameDay(as: selectedDate) } // Filter today's tasks
+        let completedTasks = todayTasks.filter { $0.isCompleted }.count // Count completed tasks
+        let totalTasks = todayTasks.count
+        
+        return totalTasks > 0 ? Int((Double(completedTasks) / Double(totalTasks)) * 100) : 0
     }
     
     // MARK: - Week View
@@ -67,19 +82,18 @@ struct HomeView: View {
                     }
                 }
             }
-            .padding(.top)
+            .padding(.top,20)
         }
     }
     
     // MARK: - Task List
     private var taskList: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .center) {
             Text("My Tasks")
                 .font(.headline)
                 .padding(.vertical)
-            
             ForEach(tasks.filter { $0.date.isSameDay(as: selectedDate) }) { task in
-                TaskRow(task: task)
+                TaskRow(task: task).padding(.vertical,5)
             }
         }
     }
@@ -90,35 +104,46 @@ struct TaskRow: View {
     let task: UserTask
     
     var body: some View {
-        HStack {
+        HStack(spacing: 16) {
             Image(systemName: task.category.taskImage)
-                .foregroundColor(.blue)
-                .padding()
+                .resizable()
+                .scaledToFit()
+                .frame(width: 40, height: 40) // Bigger icon
+                .foregroundColor(.white)
+                .padding(.leading)
             
-            VStack(alignment: .leading) {
-                Text(task.taskName)
-                    .font(.headline)
-                
-                Text("\(task.startTime) - \(task.endTime)")
+            VStack(alignment: .leading, spacing: 4) {
+                Text(task.category.rawValue.capitalized) // Category Name
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                
+                Text(task.taskName) // Task Name
+                    .font(.headline)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                
+                Text("\(task.startTime) - \(task.endTime)") // Time
+                    .font(.callout)
+                    .foregroundColor(.white.opacity(0.8))
             }
             
             Spacer()
-            
-            if task.isCompleted {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-            } else {
-                Image(systemName: "circle")
-                    .foregroundColor(.gray)
-            }
+            Text(">")
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.3)))
-        .padding(.horizontal)
+        .background(
+            Color(task.category.customCategory.categoryColor)
+                .cornerRadius(10)
+                .opacity(1.0) // Keep full opacity
+        )
+        .overlay(
+            task.isCompleted ?
+            Color.white.opacity(0.5) : Color.clear // Add an overlay for completed tasks
+        )
+
     }
 }
+
+
 
 // MARK: - Circular Progress View
 struct CircularProgressView: View {
