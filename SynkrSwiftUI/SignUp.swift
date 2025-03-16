@@ -1,25 +1,24 @@
 import SwiftUI
 
 struct SignupView: View {
+    var toggleView: () -> Void
     
     @State private var fullName = ""
     @State private var email = ""
     @State private var password = ""
     
     var body: some View {
-        VStack(spacing: 15) { // Reduced spacing
+        VStack(spacing: 15) {
             // App Logo
-            Image("Logo") // Replace with your asset name
+            Image("Logo")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 250, height: 250)
-                 // Adjust padding instead of default VStack spacing
             
             // Short text under the logo
             Text("Create your new account")
                 .font(.headline)
                 .foregroundColor(.gray)
-                 // Pull it up slightly
 
             // Full Name Field
             TextField("Full Name", text: $fullName)
@@ -76,21 +75,14 @@ struct SignupView: View {
             // Login Link
             HStack {
                 Text("Already have an account?")
-                NavigationLink(destination: LoginView()) {
-                    Text("Log in")
-                        .foregroundColor(.blue)
-                        .fontWeight(.bold)
+                Button("Log in") {
+                    toggleView()
                 }
+                .foregroundColor(.blue)
+                .fontWeight(.bold)
             }
             .padding(.bottom, 20)
         }
         .padding()
-    }
-}
-
-// Preview
-#Preview {
-    NavigationView {
-        SignupView()
     }
 }
