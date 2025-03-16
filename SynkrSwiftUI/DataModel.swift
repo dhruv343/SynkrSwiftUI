@@ -31,6 +31,16 @@ extension Date {
     }
 }
 
+func getMarch17Date() -> Date {
+    let calendar = Calendar.current
+    var dateComponents = DateComponents()
+    dateComponents.year = calendar.component(.year, from: Date()) // Current year
+    dateComponents.month = 3
+    dateComponents.day = 17
+
+    return calendar.date(from: dateComponents) ?? Date() // Fallback to current date if nil
+}
+
 // MARK: - Enums
 enum Priority: String {
     case low = "Low"
@@ -655,7 +665,8 @@ class TaskDataModel {
             date: Date(),
             priority: .high,
             alert: .fiveMinutes,
-            category: .sports
+            category: .sports,
+            isCompleted: true
         )
         
         let task2 = UserTask(
@@ -668,10 +679,21 @@ class TaskDataModel {
             alert: .tenMinutes,
             category: .meetings
         )
+        let task3 = UserTask(
+            taskName: "Project Work",
+            description: "Weekly project status update",
+            startTime: "10:00",
+            endTime: "11:00",
+            date: getMarch17Date(),
+            priority: .medium,
+            alert: .tenMinutes,
+            category: .work
+        )
         
         // Add tasks to the sample user
         _ = addTask(task1, for: sampleUser.userId)
         _ = addTask(task2, for: sampleUser.userId)
+        _ = addTask(task3, for: sampleUser.userId)
         
         // Sample time capsule
         let capsule = TimeCapsule(
