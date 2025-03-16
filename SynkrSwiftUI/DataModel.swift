@@ -1,7 +1,37 @@
 import UIKit
+import Foundation
+
+extension Date {
+    /// Fetches the full week (Sunday to Saturday) for the current date.
+    func fullWeekDates() -> [Date] {
+        let calendar = Calendar.current
+        let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: self)?.start ?? self
+        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: startOfWeek) }
+    }
+    
+    /// Formats a Date into a readable string (e.g., "16 Mar, Sun").
+    func formattedString(format: String = "dd MMM, EEE") -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        return formatter.string(from: self)
+    }
+    func fullFormattedString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        formatter.timeStyle = .none
+        return formatter.string(from: self)
+    }
+    func yearString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy"
+        return formatter.string(from: self)
+    }
+    func isSameDay(as date: Date) -> Bool {
+        return Calendar.current.isDate(self, inSameDayAs: date)
+    }
+}
 
 // MARK: - Enums
-
 enum Priority: String {
     case low = "Low"
     case medium = "Medium"
@@ -94,14 +124,14 @@ enum Category: String, CaseIterable {
         }
     }
     
-    var taskImage: UIImage? {
+    var taskImage: String {
         switch self {
-        case .work: return UIImage(systemName: "latch.2.case")
-        case .study: return UIImage(systemName: "books.vertical")
-        case .sports: return UIImage(systemName: "figure.run")
-        case .meetings: return UIImage(systemName: "person.line.dotted.person")
-        case .habits: return UIImage(systemName: "arrow.trianglehead.2.clockwise")
-        case .others: return UIImage(named: "Others")
+        case .work: return "latch.2.case"
+        case .study: return "books.vertical"
+        case .sports: return "figure.run"
+        case .meetings: return "person.line.dotted.person"
+        case .habits: return "arrow.trianglehead.2.clockwise"
+        case .others: return "Others"
         }
     }
 }
@@ -152,8 +182,8 @@ struct Settings {
 }
 
 // Rename Task to UserTask to avoid conflict with Swift's concurrency Task
-struct UserTask {
-    var taskId: UUID
+struct UserTask: Identifiable {
+    var id = UUID()
     var taskName: String
     var description: String
     var startTime: String
@@ -165,8 +195,7 @@ struct UserTask {
     var category: Category
     var otherCategory: String?
     
-    init(taskId: UUID = UUID(), taskName: String, description: String, startTime: String, endTime: String, date: Date, priority: Priority, isCompleted: Bool = false, alert: Alert, category: Category, otherCategory: String? = nil) {
-        self.taskId = taskId
+    init(taskName: String, description: String, startTime: String, endTime: String, date: Date, priority: Priority, alert: Alert, category: Category, otherCategory: String? = nil, isCompleted: Bool = false) {
         self.taskName = taskName
         self.description = description
         self.startTime = startTime
@@ -259,131 +288,6 @@ struct AwardsEarned {
     }
 }
 
-// Create dummy data to test the models
-func testModelsWithDummyData() {
-    // Create a user
-    let userSettings = Settings(
-        usage: .personal,
-        bedtime: "10:30 PM",
-        wakeUpTime: "6:30 AM",
-        notificationsEnabled: true
-    )
-    
-    var user = User(
-        name: "John Doe",
-        email: "john.doe@example.com",
-        password: "securePassword123",
-        phone: "+1234567890",
-        settings: userSettings
-    )
-    
-    print("Created User: \(user.name), Email: \(user.email)")
-    print(user)
-    
-    // Create some tasks - Use UserTask instead of Task
-    let task1 = UserTask(
-        taskName: "Morning Workout",
-        description: "30 minutes cardio and strength training",
-        startTime: "7:00 AM",
-        endTime: "7:30 AM",
-        date: Date(),
-        priority: .high,
-        alert: .tenMinutes,
-        category: .sports
-    )
-    
-    let task2 = UserTask(
-        taskName: "Team Meeting",
-        description: "Weekly sync with project team",
-        startTime: "10:00 AM",
-        endTime: "11:00 AM",
-        date: Calendar.current.date(byAdding: .day, value: 1, to: Date())!,
-        priority: .medium,
-        alert: .fifteenMinutes,
-        category: .meetings
-    )
-    
-    let task3 = UserTask(
-        taskName: "Study Swift",
-        description: "Learn about Combine framework",
-        startTime: "7:00 PM",
-        endTime: "8:30 PM",
-        date: Date(),
-        priority: .medium,
-        alert: .none,
-        category: .study
-    )
-    let arrDeep = [task1, task2, task3]
-    // Add task IDs to user
-    user.taskIds.append(task1.taskId)
-    user.taskIds.append(task2.taskId)
-    user.taskIds.append(task3.taskId)
-    
-    print("Added \(user.taskIds.count) tasks to user")
-    for x in arrDeep {
-        if(user.taskIds.contains(x.taskId)) {
-            print(x)
-            print()
-            print()
-            break
-        }
-    }
-    // Create a time capsule with subtasks
-    var timeCapsule = TimeCapsule(
-        capsuleName: "Learn iOS Development",
-        deadline: Calendar.current.date(byAdding: .month, value: 3, to: Date())!,
-        priority: .high,
-        description: "Complete iOS development course and build a portfolio app",
-        category: .study // Changed from .education to .study
-    )
-    
-    let subtask1 = Subtask(
-        subtaskName: "Complete Swift fundamentals",
-        description: "Learn basic syntax and concepts",
-        isCompleted: true
-    )
-    
-    let subtask2 = Subtask(
-        subtaskName: "Learn UIKit",
-        description: "Master the basics of UIKit framework"
-    )
-    
-    let subtask3 = Subtask(
-        subtaskName: "Build a simple app",
-        description: "Create a to-do list application"
-    )
-    
-    // Add subtask IDs to time capsule
-    timeCapsule.subtaskIds.append(subtask1.subtaskId)
-    timeCapsule.subtaskIds.append(subtask2.subtaskId)
-    timeCapsule.subtaskIds.append(subtask3.subtaskId)
-    
-    // Update completion percentage
-    timeCapsule.updateCompletionPercentage(subtasks: [subtask1, subtask2, subtask3])
-    
-    print("Time Capsule: \(timeCapsule.capsuleName), Completion: \(timeCapsule.completionPercentage)%")
-    
-    // Add time capsule ID to user
-    user.timeCapsuleIds.append(timeCapsule.capsuleId)
-    print(user)
-    print()
-    // Create an award and assign it to the user
-    let award = Award(
-        awardName: "Early Bird",
-        description: "Complete 5 tasks before 9 AM"
-    )
-    
-    let awardEarned = AwardsEarned(
-        awardId: award.awardId,
-        dateEarned: Date()
-    )
-    
-    user.awardsEarned.append(awardEarned)
-    
-    print("User earned award: \(award.awardName) \nEarned date: \(awardEarned.dateEarned)")
-    print()
-}
-
 class TaskDataModel {
     // Singleton instance
     static let shared = TaskDataModel()
@@ -449,14 +353,14 @@ class TaskDataModel {
     func getAllTasks(for userId: UUID) -> [UserTask] {
         return tasks.filter { task in
             if let user = getUser(by: userId) {
-                return user.taskIds.contains(task.taskId)
+                return user.taskIds.contains(task.id)
             }
             return false
         }
     }
     
     func getTask(by taskId: UUID) -> UserTask? {
-        return tasks.first { $0.taskId == taskId }
+        return tasks.first { $0.id == taskId }
     }
     
     func addTask(_ task: UserTask, for userId: UUID) -> Bool {
@@ -469,18 +373,18 @@ class TaskDataModel {
         tasks.append(task)
         
         // Update the user's taskIds array
-        users[userIndex].taskIds.append(task.taskId)
+        users[userIndex].taskIds.append(task.id)
         
         // Update current user if needed
         if currentUser?.userId == userId {
-            currentUser?.taskIds.append(task.taskId)
+            currentUser?.taskIds.append(task.id)
         }
         
         return true
     }
     
     func updateTask(_ task: UserTask) {
-        if let index = tasks.firstIndex(where: { $0.taskId == task.taskId }) {
+        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[index] = task
         }
     }
@@ -492,7 +396,7 @@ class TaskDataModel {
         }
         
         // Remove the task from the tasks array
-        tasks.removeAll { $0.taskId == taskId }
+        tasks.removeAll { $0.id == taskId }
         
         // Remove the taskId from the user's taskIds array
         users[userIndex].taskIds.removeAll { $0 == taskId }
@@ -526,6 +430,11 @@ class TaskDataModel {
     
     func getPendingTasks(for userId: UUID) -> [UserTask] {
         return getAllTasks(for: userId).filter { !$0.isCompleted }
+    }
+    
+    func fetchOverdueTasks(for userId: UUID) -> [UserTask] {
+        let today = Date()
+        return getAllTasks(for: userId).filter { $0.date < today && !$0.isCompleted }
     }
     
     // MARK: - Time Capsule Management
@@ -729,8 +638,8 @@ class TaskDataModel {
         
         let sampleUser = User(
             name: "John Doe",
-            email: "john@example.com",
-            password: "password123",
+            email: "a@gmail.com",
+            password: "123456",
             phone: "+1234567890",
             settings: sampleSettings
         )
@@ -761,8 +670,8 @@ class TaskDataModel {
         )
         
         // Add tasks to the sample user
-        addTask(task1, for: sampleUser.userId)
-        addTask(task2, for: sampleUser.userId)
+        _ = addTask(task1, for: sampleUser.userId)
+        _ = addTask(task2, for: sampleUser.userId)
         
         // Sample time capsule
         let capsule = TimeCapsule(
@@ -773,18 +682,18 @@ class TaskDataModel {
             category: .study
         )
         
-        addTimeCapsule(capsule, for: sampleUser.userId)
+        _ = addTimeCapsule(capsule, for: sampleUser.userId)
         
         // Sample subtasks for the time capsule
         let subtask1 = Subtask(subtaskName: "Learn variables and constants")
         let subtask2 = Subtask(subtaskName: "Learn data types")
         let subtask3 = Subtask(subtaskName: "Learn control flow")
         
-        addSubtask(subtask1, to: capsule.capsuleId)
-        addSubtask(subtask2, to: capsule.capsuleId)
-        addSubtask(subtask3, to: capsule.capsuleId)
+        _ = addSubtask(subtask1, to: capsule.capsuleId)
+        _ = addSubtask(subtask2, to: capsule.capsuleId)
+        _ = addSubtask(subtask3, to: capsule.capsuleId)
         
         // Award the user
-        awardUser(userId: sampleUser.userId, awardId: award1.awardId)
+        _ = awardUser(userId: sampleUser.userId, awardId: award1.awardId)
     }
 }
